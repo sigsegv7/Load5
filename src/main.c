@@ -34,6 +34,8 @@
 EFI_SYSTEM_TABLE *g_systab;
 EFI_BOOT_SERVICES *g_bootsrv;
 EFI_GRAPHICS_OUTPUT_PROTOCOL *g_gop;
+EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *g_sfs;
+EFI_FILE_PROTOCOL *g_fproto;
 struct l5_proto g_lfive;
 
 /*
@@ -44,6 +46,55 @@ die(void)
 {
     puts(L"\r\n!! l5 panic !!\r\n");
     for (;;);
+}
+
+/*
+ * Initialize the EFI file protocol
+ *
+ * @image: Image handle
+ * @res: File protocol
+ *
+ * Returns zero on success
+ */
+static int
+init_efi_file(efi_handle_t image, EFI_FILE_PROTOCOL **res)
+{
+    efi_status_t status;
+    EFI_LOADED_IMAGE_PROTOCOL *loaded_image;
+    EFI_GUID sfs_guid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
+    EFI_GUID lip_guid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
+
+    /* Get the loaded image interface */
+    status = g_bootsrv->handle_protocol(
+        image,
+        &lip_guid,
+        (void **)&loaded_image
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"could not handle loaded image protocol\r\n");
+        return status;
+    }
+
+    /* Grab the I/O volume */
+    status = g_bootsrv->handle_protocol(
+        loaded_image->device_handle,
+        &sfs_guid,
+        (void **)&g_sfs
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"could not get I/O image\r\n");
+        return status;
+    }
+
+    status = g_sfs->open_volume(g_sfs, res);
+    if (EFI_ERROR(status)) {
+        puts(L"could not open file protocol\r\n");
+        return status;
+    }
+
+    return 0;
 }
 
 /*
@@ -154,7 +205,7 @@ efi_get_gop(void)
 }
 
 int
-efi_main(void *hand, EFI_SYSTEM_TABLE *systab)
+efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
 {
     int error;
 
@@ -169,6 +220,8 @@ efi_main(void *hand, EFI_SYSTEM_TABLE *systab)
     }
 
     efi_get_mem();
+    init_efi_file(hand, &g_fproto);
+
     for (;;);
     return 0;
 }
