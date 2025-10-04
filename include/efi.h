@@ -1584,12 +1584,12 @@ typedef
         );
 
 typedef struct {
-    uint32_t MaxMode;
-    uint32_t Mode;
-    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
-    uintn_t SizeOfInfo;
-    efi_phys_addr_t FrameBufferBase;
-    uintn_t FrameBufferSize;
+    uint32_t max_mode;
+    uint32_t mode;
+    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
+    uintn_t size_of_info;
+    efi_phys_addr_t frame_buffer_base;
+    uintn_t frame_buffer_size;
 } EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE;
 
 typedef struct EFI_GRAPHICS_OUTPUT_PROTOCOL {

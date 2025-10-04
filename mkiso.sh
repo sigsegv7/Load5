@@ -10,6 +10,6 @@ mcopy -i iso_root/fat.img BOOTX64.EFI ::/EFI/BOOT
 
 xorriso -as mkisofs -no-emul-boot -boot-load-size 4 \
     -boot-info-table --efi-boot fat.img -efi-boot-part \
-    --efi-boot-image --protective-msdos-label iso_root -o Hyra.iso > /dev/null
+    --efi-boot-image --protective-msdos-label iso_root -o L5.iso > /dev/null
 
 rm -rf iso_root
