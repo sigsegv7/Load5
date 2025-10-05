@@ -1919,4 +1919,10 @@ typedef struct EFI_LOADED_IMAGE_PROTOCOL {
     EFI_IMAGE_UNLOAD unload;
 } EFI_LOADED_IMAGE_PROTOCOL;
 
+extern EFI_SYSTEM_TABLE *g_systab;
+extern EFI_BOOT_SERVICES *g_bootsrv;
+extern EFI_GRAPHICS_OUTPUT_PROTOCOL *g_gop;
+extern EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *g_sfs;
+extern EFI_FILE_PROTOCOL *g_fproto;
+
 #endif  /* !_EFI_H_ */
