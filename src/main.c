@@ -33,6 +33,7 @@
 
 #define SEEK_END 0xFFFFFFFFFFFFFFFF
 
+static void *kern_img = NULL;
 EFI_SYSTEM_TABLE *g_systab;
 EFI_BOOT_SERVICES *g_bootsrv;
 EFI_GRAPHICS_OUTPUT_PROTOCOL *g_gop;
@@ -99,6 +100,64 @@ efi_get_fsize(EFI_FILE_PROTOCOL *file, uintn_t *size_res)
 
     *size_res = size;
     return EFI_SUCCESS;
+}
+
+/*
+ * Load the kernel via EFi
+ */
+static void
+load_kernel(void)
+{
+    EFI_FILE_PROTOCOL *file;
+    EFI_FILE_INFO finfo;
+    uintn_t file_size;
+    efi_status_t status;
+    void *bin_buf;
+
+    /* Open the kernel image */
+    status = g_fproto->open(
+        g_fproto,
+        &file,
+        L"l5",
+        EFI_FILE_MODE_READ,
+        EFI_FILE_READ_ONLY | EFI_FILE_READ_ONLY | EFI_FILE_SYSTEM
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"could not load kernel\r\n");
+        die();
+    }
+
+    /* Get the file size */
+    status = efi_get_fsize(file, &file_size);
+    if (EFI_ERROR(status)) {
+        puts(L"get file size\r\n");
+        die();
+    }
+
+    /* Allocate memory for the kernel */
+    status = g_bootsrv->allocate_pool(
+        EfiRuntimeServicesData,
+        file_size,
+        (void **)&kern_img
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"failed to allocate kernel buffer\r\n");
+        die();
+    }
+
+    /* Load the kernel image into our buffer */
+    status = file->read(
+        file,
+        &file_size,
+        kern_img
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"failed to read kernel\r\n");
+        die();
+    }
 }
 
 /*
@@ -257,6 +316,9 @@ efi_get_gop(void)
 int
 efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
 {
+    efi_status_t status;
+    EFI_FILE_PROTOCOL file;
+    uintn_t map_key = 0;
     int error;
 
     g_systab = systab;
@@ -269,8 +331,22 @@ efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
         die();
     }
 
-    efi_get_mem();
+    /* Load the kernel and L5 protocol */
     init_efi_file(hand, &g_fproto);
+    load_kernel();
+    map_key = efi_get_mem();
+
+    /* Get the heck out of here! */
+    status = g_bootsrv->exit_boot_services(
+        hand,
+        map_key
+    );
+
+    /* This would suck */
+    if (status != EFI_SUCCESS) {
+        puts(L"could not exit EFI boot services\r\n");
+        die();
+    }
 
     for (;;);
     return 0;
