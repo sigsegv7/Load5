@@ -28,6 +28,7 @@
  */
 
 #include <machine/mmu.h>
+#include <lfive/mem.h>
 #include <cdefs.h>
 #include <efi.h>
 
@@ -36,9 +37,6 @@
 #define PTE_P           BIT(0)        /* Present */
 #define PTE_RW          BIT(1)        /* Writable */
 #define PTE_NX          BIT(63)       /* Execute-disable */
-
-/* Higher half (kernel) */
-#define KERNEL_BASE 0xFFFFFFFF80000000
 
 /* Default page size */
 #define PAGE_SIZE 4096

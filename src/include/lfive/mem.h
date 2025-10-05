@@ -30,4 +30,7 @@
 #ifndef _LFIVE_MEM_H_
 #define _LFIVE_MEM_H_ 1
 
+/* Higher half (kernel) */
+#define KERNEL_BASE 0xFFFFFFFF80000000
+
 #endif  /* !_LFIVE_MEM_H_ */
