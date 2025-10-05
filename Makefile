@@ -1,9 +1,11 @@
+TARGET = amd64
 CC = clang
-TARGET = x86_64-pc-win32-coff
-CFLAGS = -target $(TARGET) -fno-stack-protector -fshort-wchar -mno-red-zone
+EFI_TARGET = x86_64-pc-win32-coff
+CFLAGS = -target $(EFI_TARGET) -fno-stack-protector -fshort-wchar -mno-red-zone
 
 all:
-	make -C src/ TARGET=$(TARGET) CFLAGS="$(CFLAGS)" CC=$(CC)
+	make -C src/ EFI_TARGET=$(EFI_TARGET) TARGET=$(TARGET) \
+		CFLAGS="$(CFLAGS)" CC=$(CC)
 	bash mkiso.sh
 	make clean
 
