@@ -27,12 +27,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * We'll do some work in this file, stub is here
- * so the compiler doesn't complain, get rid of it
- * soon
- */
-static void
-stub(void)
+#include <machine/mmu.h>
+#include <cdefs.h>
+
+/* Page table flags */
+#define PTE_ADDR_MASK   0x000FFFFFFFFFF000
+#define PTE_P           BIT(0)        /* Present */
+#define PTE_RW          BIT(1)        /* Writable */
+#define PTE_NX          BIT(63)       /* Execute-disable */
+
+int
+mmu_get_vas(struct mmu_vas *res_p)
 {
+    uint64_t cr3;
+
+    if (res_p == NULL) {
+        return -1;
+    }
+
+    /* Read the CR3 value */
+    __ASMV(
+        "mov %%cr3, %0"
+        :
+        : "r" (cr3)
+        : "memory"
+    );
+
+    res_p->pml4 = cr3 & PTE_ADDR_MASK;
+    return 0;
 }

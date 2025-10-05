@@ -32,4 +32,17 @@
 
 #include <efi.h>
 
+struct mmu_vas {
+    uintptr_t pml4;
+};
+
+/*
+ * Get the current virtual address
+ *
+ * @res_p: The result is written here
+ *
+ * Returns zero on success
+ */
+int mmu_get_vas(struct mmu_vas *res_p);
+
 #endif  /* _MACHINE_MMU_H_ */
