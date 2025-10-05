@@ -48,4 +48,22 @@ struct mmu_vas {
  */
 int mmu_get_vas(struct mmu_vas *res_p);
 
+/*
+ * Set a virtual address space
+ *
+ * @vas: Virtual address space to use
+ *
+ * Returns zero on success
+ */
+int mmu_set_vas(struct mmu_vas *vas);
+
+/*
+ * Initialize a page to be used as a PML4
+ *
+ * @pg: Newly allocated page base
+ *
+ * Returns zero on success
+ */
+int mmu_init_vas(uintptr_t pg);
+
 #endif  /* _MACHINE_MMU_H_ */

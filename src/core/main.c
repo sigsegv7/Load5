@@ -28,11 +28,14 @@
  */
 
 #include <efi.h>
+#include <cdefs.h>
 #include <lfive/log.h>
 #include <lfive/proto.h>
+#include <machine/mmu.h>
 
 #define SEEK_END 0xFFFFFFFFFFFFFFFF
 
+static uintptr_t vas_pg;
 static void *kern_img = NULL;
 EFI_SYSTEM_TABLE *g_systab;
 EFI_BOOT_SERVICES *g_bootsrv;
@@ -356,6 +359,27 @@ efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
     puts(L"[ press enter to boot ]\r\n");
     wait_key();
     puts(L"** booting...\r\n");
+
+    /* Allocate a virtual address space */
+    status = g_bootsrv->allocate_pages(
+        AllocateAnyPages,
+        EfiLoaderData,
+        1,
+        &vas_pg
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"failed to allocate VAS\r\n");
+        die();
+    }
+
+    /*
+     * Initialize the address space, we don't want to
+     * switch just yet! But take advantage of the boot
+     * services before we exit them
+     */
+    mmu_init_vas(vas_pg);
+    puts(L"** vas initialized");
 
     /* Load the kernel and L5 protocol */
     init_efi_file(hand, &g_fproto);
