@@ -31,6 +31,10 @@
 #define _MACHINE_MMU_H_ 1
 
 #include <efi.h>
+#include <cdefs.h>
+
+#define PROT_READ   BIT(0)
+#define PROT_WRITE  BIT(1)
 
 typedef uintptr_t vaddr_t;
 typedef uintptr_t paddr_t;
@@ -56,6 +60,16 @@ int mmu_get_vas(struct mmu_vas *res_p);
  * Returns zero on success
  */
 int mmu_set_vas(struct mmu_vas *vas);
+
+/*
+ * Initialize a virtual address space
+ *
+ * @vas: VAS to map
+ * @va: Virtual address to use
+ *
+ * Returns zero on success
+ */
+int mmu_map(struct mmu_vas *vas, vaddr_t va, paddr_t pa, int prot);
 
 /*
  * Initialize a page to be used as a PML4
