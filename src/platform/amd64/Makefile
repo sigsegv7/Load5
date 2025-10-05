@@ -5,7 +5,7 @@ OBJ = $(CFILES:.c=.o)
 all: $(OBJ)
 
 %.o: %.c
-	$(CC) -c -Iinclude/ $(CFLAGS) $< -o $@
+	$(CC) -c -I../../include/ $(CFLAGS) $< -o $@
 
 .PHONY: clean
 clean:
