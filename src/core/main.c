@@ -109,7 +109,6 @@ static void
 load_kernel(void)
 {
     EFI_FILE_PROTOCOL *file;
-    EFI_FILE_INFO finfo;
     uintn_t file_size;
     efi_status_t status;
     void *bin_buf;
