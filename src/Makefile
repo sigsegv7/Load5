@@ -2,6 +2,7 @@ TARGET =
 EFI_TARGET =
 CFILES = $(shell find core/ -name "*.c")
 CFILES += platform/$(TARGET)/*.c
+CFILES += lib/*.c
 OBJ = $(CFILES:.c=.o)
 
 .PHONY: all
