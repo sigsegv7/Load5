@@ -33,4 +33,8 @@
 /* Higher half (kernel) */
 #define KERNEL_BASE 0xFFFFFFFF80000000
 
+/* Memory sizes */
+#define MEM_1GIB 0x40000000
+#define MEM_2MIB 0x200000
+
 #endif  /* !_LFIVE_MEM_H_ */

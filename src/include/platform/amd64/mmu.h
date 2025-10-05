@@ -36,6 +36,11 @@
 #define PROT_READ   BIT(0)
 #define PROT_WRITE  BIT(1)
 
+/* Huge values for mmu_map() */
+#define MAP_SMALL_4K  0x0000
+#define MAP_HUGE_2MIB 0x0001
+#define MAP_HUGE_1GIB 0x0002
+
 typedef uintptr_t vaddr_t;
 typedef uintptr_t paddr_t;
 
@@ -66,10 +71,13 @@ int mmu_set_vas(struct mmu_vas *vas);
  *
  * @vas: VAS to map
  * @va: Virtual address to use
+ * @pa: Physical address to map `va' to
+ * @prot: Protection flags
+ * @huge: If true, map huge pages
  *
  * Returns zero on success
  */
-int mmu_map(struct mmu_vas *vas, vaddr_t va, paddr_t pa, int prot);
+int mmu_map(struct mmu_vas *vas, vaddr_t va, paddr_t pa, int prot, int size);
 
 /*
  * Initialize a page to be used as a PML4

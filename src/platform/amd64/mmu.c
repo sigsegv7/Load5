@@ -36,6 +36,7 @@
 #define PTE_ADDR_MASK   0x000FFFFFFFFFF000
 #define PTE_P           BIT(0)        /* Present */
 #define PTE_RW          BIT(1)        /* Writable */
+#define PTE_PS          BIT(7)        /* Page size */
 #define PTE_NX          BIT(63)       /* Execute-disable */
 
 /* Default page size */
@@ -225,10 +226,10 @@ mmu_set_vas(struct mmu_vas *vas)
 }
 
 int
-mmu_map(struct mmu_vas *vas, vaddr_t va, paddr_t pa, int prot)
+mmu_map(struct mmu_vas *vas, vaddr_t va, paddr_t pa, int prot, int size)
 {
     uintptr_t *tbl;
-    uint32_t pte_flags;
+    uint32_t pte_flags = 0;
     uintn_t index;
     int error;
 
@@ -237,12 +238,39 @@ mmu_map(struct mmu_vas *vas, vaddr_t va, paddr_t pa, int prot)
     }
 
     /* Grab the page table */
-    error = mmu_get_level(
-        vas,
-        va,
-        PMAP_TBL,
-        &tbl
-    );
+    switch (size) {
+    case MAP_HUGE_2MIB:
+        error = mmu_get_level(
+            vas,
+            va,
+            PMAP_PD,
+            &tbl
+        );
+
+        pte_flags |= PTE_PS;
+        index = mmu_level_index(va, PMAP_PD);
+        break;
+    case MAP_HUGE_1GIB:
+        error = mmu_get_level(
+            vas,
+            va,
+            PMAP_PDPT,
+            &tbl
+        );
+
+        pte_flags |= PTE_PS;
+        index = mmu_level_index(va, PMAP_PDPT);
+        break;
+    default:
+        error = mmu_get_level(
+            vas,
+            va,
+            PMAP_TBL,
+            &tbl
+        );
+        index = mmu_level_index(va, PMAP_TBL);
+        break;
+    }
 
     if (error != 0) {
         puts(L"mmu_map page table fetch failure\r\n");
@@ -250,8 +278,7 @@ mmu_map(struct mmu_vas *vas, vaddr_t va, paddr_t pa, int prot)
     }
 
     /* Grab the MD flags and PTE index */
-    pte_flags = prot_to_pte(prot);
-    index = mmu_level_index(va, PMAP_TBL);
+    pte_flags |= prot_to_pte(prot);
 
     /* Create the mapping */
     tbl[index] = pa | pte_flags;
@@ -281,28 +308,10 @@ mmu_init_vas(uintptr_t pg)
     }
 
     /* Identity map the lower 4 GiB */
-    for (uintn_t i = 0; i < 0x100000000; i += PAGE_SIZE) {
-        error = mmu_map(&vas, i, i, prot);
+    for (uintn_t i = 0; i < MEM_1GIB * 4; i += MAP_HUGE_1GIB) {
+        error = mmu_map(&vas, i, i, prot, MAP_HUGE_1GIB);
         if (error != 0) {
             puts(L"failed to map lower 4 GiB\r\n");
-            die();
-        }
-    }
-
-    /* Identity map 1 GiB above lower 4 GiB space */
-    for (uintn_t i = 0; i < 0x200000000; i += PAGE_SIZE) {
-        error = mmu_map(&vas, i, i, prot);
-        if (error != 0) {
-            puts(L"failed to map lower 4 GiB\r\n");
-            die();
-        }
-    }
-
-    /* Map the kernel */
-    for (uintn_t i = 0; i < 0x7FFFFFFF; i += PAGE_SIZE) {
-        error = mmu_map(&vas, i + KERNEL_BASE, i, prot);
-        if (error != 0) {
-            puts(L"failed to map kernel\r\n");
             die();
         }
     }
