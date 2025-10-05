@@ -48,8 +48,8 @@ mmu_get_vas(struct mmu_vas *res_p)
     /* Read the CR3 value */
     __ASMV(
         "mov %%cr3, %0"
+        : "=r" (cr3)
         :
-        : "r" (cr3)
         : "memory"
     );
 
