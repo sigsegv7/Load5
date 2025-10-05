@@ -11,7 +11,7 @@ all:
 
 .PHONY: test
 test:
-	qemu-system-x86_64 -cdrom L5.iso   -drive if=pflash,format=raw,unit=0,file=ovmf.fd,readonly=on
+	qemu-system-x86_64 -cdrom L5.iso -drive if=pflash,format=raw,unit=0,file=blobs/ovmf.fd,readonly=on
 
 clean:
 	make -C src/ clean
