@@ -32,8 +32,11 @@
 
 #include <efi.h>
 
+typedef uintptr_t vaddr_t;
+typedef uintptr_t paddr_t;
+
 struct mmu_vas {
-    uintptr_t pml4;
+    paddr_t pml4;
 };
 
 /*
