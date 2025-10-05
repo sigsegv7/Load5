@@ -313,6 +313,32 @@ efi_get_gop(void)
     return 0;
 }
 
+/*
+ * Wait for a keystroke to boot the system
+ */
+static void
+wait_key(void)
+{
+    EFI_INPUT_KEY input;
+
+    /* Flush the console input */
+    g_systab->con_in->reset(
+        g_systab->con_in,
+        0
+    );
+
+    for (;;) {
+        g_systab->con_in->read_key_stroke(
+            g_systab->con_in,
+            &input
+        );
+
+        if (input.unicode_char == L'\r') {
+            break;
+        }
+    }
+}
+
 int
 efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
 {
@@ -326,10 +352,14 @@ efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
 
     /* Grab the boot services */
     systab->boot_services->set_watchdog_timer(0, 0, 0, NULL);
-    puts(L"l5 loader - uefi\r\n");
+    puts(L"** l5 loader (uefi) **\r\n");
     if ((error = efi_get_gop()) < 0) {
         die();
     }
+
+    puts(L"[ press enter to boot ]\r\n");
+    wait_key();
+    puts(L"** booting...\r\n");
 
     /* Load the kernel and L5 protocol */
     init_efi_file(hand, &g_fproto);
