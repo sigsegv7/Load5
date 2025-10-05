@@ -242,7 +242,6 @@ efi_get_mem(void)
         (void **)&g_lfive.memmap
     );
 
-
     /* Allocate a pool for the memory map */
     map_size += 2 * descriptor_size;
     status = g_bootsrv->allocate_pool(
