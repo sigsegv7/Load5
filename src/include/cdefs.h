@@ -31,5 +31,12 @@
 #define _CDEFS_H_ 1
 
 #define __ASMV __asm__ __volatile__
+#define ISSET(v, f)  ((v) & (f))
+#define BIT(n) (1ULL << (n))
+#define MASK(n) ((1ULL << n) - 1)
+
+/* Align up/down a value */
+#define ALIGN_DOWN(value, align)      ((value) & ~((align)-1))
+#define ALIGN_UP(value, align)        (((value) + (align)-1) & ~((align)-1))
 
 #endif  /* !_CDEFS_H_ */
