@@ -351,6 +351,13 @@ efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
 
     /* Grab the boot services */
     systab->boot_services->set_watchdog_timer(0, 0, 0, NULL);
+
+    /* Clear the console */
+    systab->con_out->reset(
+        systab->con_out,
+        0
+    );
+
     puts(L"** l5 loader (uefi) **\r\n");
     if ((error = efi_get_gop()) < 0) {
         die();
