@@ -355,6 +355,15 @@ efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
         die();
     }
 
+    /*
+     * Initialize the address space, we don't want to
+     * switch just yet! But take advantage of the boot
+     * services before we exit them
+     */
+    mmu_init_vas(vas_pg);
+    puts(L"** vas initialized\r\n");
+
+    /* Wait for input */
     puts(L"[ press enter to boot ]\r\n");
     wait_key();
     puts(L"** booting...\r\n");
@@ -371,14 +380,6 @@ efi_main(efi_handle_t *hand, EFI_SYSTEM_TABLE *systab)
         puts(L"failed to allocate VAS\r\n");
         die();
     }
-
-    /*
-     * Initialize the address space, we don't want to
-     * switch just yet! But take advantage of the boot
-     * services before we exit them
-     */
-    mmu_init_vas(vas_pg);
-    puts(L"** vas initialized");
 
     /* Load the kernel and L5 protocol */
     init_efi_file(hand, &g_fproto);
