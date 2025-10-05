@@ -31,6 +31,8 @@
 #include <lfive/log.h>
 #include <lfive/proto.h>
 
+#define SEEK_END 0xFFFFFFFFFFFFFFFF
+
 EFI_SYSTEM_TABLE *g_systab;
 EFI_BOOT_SERVICES *g_bootsrv;
 EFI_GRAPHICS_OUTPUT_PROTOCOL *g_gop;
@@ -46,6 +48,57 @@ die(void)
 {
     puts(L"\r\n!! l5 panic !!\r\n");
     for (;;);
+}
+
+/*
+ * Get the file size
+ *
+ * @file: File handle
+ * @size_res: Result is written here
+ *
+ * Returns zero on success
+ */
+static efi_status_t
+efi_get_fsize(EFI_FILE_PROTOCOL *file, uintn_t *size_res)
+{
+    efi_status_t status;
+    uintn_t size;
+
+    /* Seek to the end */
+    status = file->set_position(
+        file,
+        SEEK_END
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"could not seek to end of file\n");
+        return status;
+    }
+
+    /* The position should be the file size */
+    status = file->get_position(
+        file,
+        &size
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"could not get file position\n");
+        return status;
+    }
+
+    /* Seek to the start */
+    status = file->set_position(
+        file,
+        0
+    );
+
+    if (EFI_ERROR(status)) {
+        puts(L"could not seek to start of file\n");
+        return status;
+    }
+
+    *size_res = size;
+    return EFI_SUCCESS;
 }
 
 /*
