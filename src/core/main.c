@@ -42,16 +42,6 @@ EFI_FILE_PROTOCOL *g_fproto;
 struct l5_proto g_lfive;
 
 /*
- * Used on panics
- */
-static void
-die(void)
-{
-    puts(L"\r\n!! l5 panic !!\r\n");
-    for (;;);
-}
-
-/*
  * Get the file size
  *
  * @file: File handle
