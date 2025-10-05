@@ -22,3 +22,4 @@ target:
 .PHONY: clean
 clean:
 	rm -f $(OBJ)
+	cd platform/$(TARGET); make clean

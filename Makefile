@@ -14,5 +14,5 @@ test:
 	qemu-system-x86_64 -cdrom L5.iso -drive if=pflash,format=raw,unit=0,file=blobs/ovmf.fd,readonly=on
 
 clean:
-	make -C src/ clean
+	make -C src/ TARGET=$(TARGET) clean
 	rm -f *.EFI *.lib
