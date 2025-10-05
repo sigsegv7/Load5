@@ -153,14 +153,14 @@ init_efi_file(efi_handle_t image, EFI_FILE_PROTOCOL **res)
 /*
  * Get the memory map from firmware
  */
-static void
+static uintn_t
 efi_get_mem(void)
 {
     struct l5_mementry *l5_ent;
     EFI_MEMORY_DESCRIPTOR *map, *ent;
     efi_status_t status;
     uintn_t map_key;
-    uintn_t map_size;
+    uintn_t map_size, l5_mapsize;
     uintn_t descriptor_size;
     uint32_t descriptor_version;
     uint8_t i = 0;
@@ -169,25 +169,34 @@ efi_get_mem(void)
     map = NULL;
     map_size = 0;
 
-#define get_memory_map()                        \
-        g_bootsrv->get_memory_map(              \
-            &map_size,                          \
-            map,                                \
-            &map_key,                           \
-            &descriptor_size,                   \
-            &descriptor_version                 \
-        );
+    /* Get the pool size */
+    status = g_bootsrv->get_memory_map(
+        &map_size,
+        map,
+        NULL,
+        &descriptor_size,
+        NULL
+    );
 
-    status = get_memory_map();
     if (status != EFI_BUFFER_TOO_SMALL) {
         puts(L"could not get memory map size\r\n");
         die();
     }
 
     /* Allocate a pool for the memory map */
+    l5_mapsize = map_size;
     status = g_bootsrv->allocate_pool(
         EfiLoaderData,
-        map_size + 2 * descriptor_size,
+        map_size,
+        (void **)&g_lfive.memmap
+    );
+
+
+    /* Allocate a pool for the memory map */
+    map_size += 2 * descriptor_size;
+    status = g_bootsrv->allocate_pool(
+        EfiLoaderData,
+        map_size,
         (void **)&map
     );
     if (EFI_ERROR(status)) {
@@ -195,31 +204,19 @@ efi_get_mem(void)
         die();
     }
 
-    /*
-     * Some firmware is stupid so we have to call this
-     * twice so it would work.
-     */
-    get_memory_map();
-    status = get_memory_map();
-    if (status == EFI_BUFFER_TOO_SMALL) {
+    /* Actually get the memory map now */
+    status = g_bootsrv->get_memory_map(
+        &map_size,
+        map,
+        &map_key,
+        &descriptor_size,
+        &descriptor_version
+    );
+    if (EFI_ERROR(status)) {
         puts(L"could not load memory map\r\n");
         die();
     }
-#undef get_memory_map
 
-    /* Allocate some memory for the protocol */
-    status = g_bootsrv->allocate_pool(
-        EfiRuntimeServicesData,
-        map_size + 2 * sizeof(struct l5_mementry),
-        (void **)&g_lfive.memmap
-    );
-
-    if (EFI_ERROR(status)) {
-        puts(L"failed to alloc protocol memmap\r\n");
-        die();
-    }
-
-    puts(L"populating protocol memory map... ");
     ent = map;
     do {
         l5_ent = &g_lfive.memmap[i];
@@ -227,7 +224,7 @@ efi_get_mem(void)
         l5_ent->npages = ent->number_of_pages;
         ent = ((void *)((uint8_t *)ent + descriptor_size));
     } while ((uint8_t *)ent < (uint8_t *)map + map_size);
-    puts(L"OK\r\n");
+    return map_key;
 }
 
 /*
