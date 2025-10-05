@@ -40,7 +40,7 @@ struct mmu_vas {
 };
 
 /*
- * Get the current virtual address
+ * Get the current virtual address space
  *
  * @res_p: The result is written here
  *
