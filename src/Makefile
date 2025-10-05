@@ -1,6 +1,7 @@
 TARGET =
 EFI_TARGET =
 CFILES = $(shell find core/ -name "*.c")
+CFILES += platform/$(TARGET)/*.c
 OBJ = $(CFILES:.c=.o)
 
 .PHONY: all
@@ -13,8 +14,6 @@ all: target $(OBJ)
 target:
 	mkdir -p include/machine/
 	cp -r include/platform/$(TARGET)/* include/machine/
-	make -C platform/$(TARGET) EFI_TARGET=$(EFI_TARGET) TARGET=$(TARGET) \
-		CFLAGS="$(CFLAGS)" CC=$(CC)
 
 %.o: %.c
 	$(CC) -c -Iinclude/ $(CFLAGS) $< -o $@
@@ -22,4 +21,3 @@ target:
 .PHONY: clean
 clean:
 	rm -f $(OBJ)
-	cd platform/$(TARGET); make clean
